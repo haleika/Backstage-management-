@@ -1,6 +1,10 @@
 <template>
   <div>
-    <el-button type="primary" icon="el-icen-plus" style="margin: 10px 0px"
+    <el-button
+      type="primary"
+      icon="el-icen-plus"
+      style="margin: 10px 10px"
+      @click="showDialog"
       >添加</el-button
     >
     <el-table :data="list" style="width: 100%" border>
@@ -14,7 +18,11 @@
       </el-table-column>
       <el-table-column prop="prop" label="操作">
         <template slot-scope="{ row, $index }">
-          <el-button type="warning" size="mini" icon="el-icon-delete"
+          <el-button
+            type="warning"
+            size="mini"
+            icon="el-icon-delete"
+            @click="updateTradeMark"
             >修改</el-button
           >
           <el-button type="danger" size="mini" icon="el-icon-delete"
@@ -23,22 +31,46 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-         -->
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="getPageList"
       style="margin-top: 20px; text-align: center"
       :current-page="pageInfo.page"
       :total="pageInfo.total"
-      :page-count="5"
+      :page-count="3"
       :page-size="pageInfo.limit"
       :page-sizes="[3, 5, 10]"
       layout="prev, pager, next, jumper,->,total, sizes"
     >
     </el-pagination>
+    <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
+      <el-form style="width: 80%" :model="tmFrom">
+        <el-form-item label="品牌名称" label-width="100px">
+          <el-input autocomplete="off" v-model="tmFrom.tmName"></el-input>
+        </el-form-item>
+        <el-form-item label="品牌LOGO" label-width="100px">
+          <el-upload
+            class="avatar-uploader"
+            action="/dev-api/admin/product/fileUpload"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img v-if="tmFrom.logoUrl" :src="tmFrom.logoUrl" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <div slot="tip" class="el-upload__tip">
+              只能上传jpg/png文件，且不超过500kb
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addOrUpdateTradeMark"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -52,6 +84,11 @@ export default {
         total: 0,
       },
       list: [],
+      dialogFormVisible: false,
+      tmFrom: {
+        tmName: "",
+        logoUrl: "",
+      },
     };
   },
   mounted() {
@@ -68,12 +105,73 @@ export default {
       }
     },
     handleSizeChange(limit) {
-        this.pageInfo.limit = limit
-        this.getPageList()
+      this.pageInfo.limit = limit;
+      this.getPageList();
     },
+    showDialog() {
+      this.tmFrom = {
+        tmName: "",
+        logoUrl: "",
+      };
+      this.dialogFormVisible = true;
+    },
+    updateTradeMark() {
+      this.tmFrom = {
+        tmName: "",
+        logoUrl: "",
+      };
+      this.dialogFormVisible = true;
+    },
+    handleAvatarSuccess(res, file) {
+      if (res.code == 200) {
+        this.tmFrom.logoUrl = res.data;
+      }
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === "image/jpeg";
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error("上传头像图片只能是 JPG 格式!");
+      }
+      if (!isLt2M) {
+        this.$message.error("上传头像图片大小不能超过 2MB!");
+      }
+      return isJPG && isLt2M;
+    },
+    async addOrUpdateTradeMark(){
+        this.dialogFormVisible = false
+        let res = await this.$API.trademark.reqAddOrUpdateTradeMark(this.tmFrom)
+        if(res.code == 200){
+
+        }
+    }
   },
 };
 </script>
   
-<style scoped>
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 </style>

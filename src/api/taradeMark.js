@@ -6,3 +6,19 @@ export const reqTradeMark = (page, limit) => request({
     method: 'get'
 })
 
+
+export const reqAddOrUpdateTradeMark = (tradeMark) => {
+    if (tradeMark.id) {
+        return request({
+            url: `/admin/product/baseTrademark/upadte`,
+            method: 'put',
+            data: tradeMark
+        })
+    } else {
+        return request({
+            url: `/admin/product/baseTrademark/save`,
+            method: 'post',
+            data: tradeMark
+        })
+    }
+}
