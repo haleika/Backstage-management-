@@ -143,11 +143,15 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
-      }).then(() => {
-        this.$message({
-          type: "success",
-          message: "删除成功!",
-        });
+      }).then(async () => {
+        let res = await this.$API.trademark.reqDeleteTradeMark(row.id);
+        if (res.code === 200) {
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+          this.getPageList(this.pageInfo.page);
+        }
       });
     },
     handleAvatarSuccess(res, file) {
