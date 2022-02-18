@@ -34,7 +34,7 @@
                 type="warning"
                 icon="el-icon-edit"
                 size="mini"
-                @click="isShowTable = false"
+                @click="updateAttr(row)"
               ></el-button>
               <el-button
                 type="danger"
@@ -156,6 +156,12 @@ export default {
         categoryId: this.category3Id,
         categoryLevel: 3,
       };
+    },
+    updateAttr(row) {
+      // 修改商品属性
+      console.log('-------row---------',row);
+      this.isShowTable = false;
+      this.attrInfo = row;
     },
   },
 };
