@@ -4,7 +4,7 @@
       type="primary"
       icon="el-icen-plus"
       style="margin: 10px 10px"
-      @click="showDialog"
+      @click="addTradeMark"
       >添加</el-button
     >
     <el-table :data="list" style="width: 100%" border>
@@ -22,10 +22,14 @@
             type="warning"
             size="mini"
             icon="el-icon-delete"
-            @click="updateTradeMark"
+            @click="updateTradeMark(row)"
             >修改</el-button
           >
-          <el-button type="danger" size="mini" icon="el-icon-delete"
+          <el-button
+            type="danger"
+            size="mini"
+            icon="el-icon-delete"
+            @click="deleteTradeMark(row)"
             >删除</el-button
           >
         </template>
@@ -43,12 +47,15 @@
       layout="prev, pager, next, jumper,->,total, sizes"
     >
     </el-pagination>
-    <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
-      <el-form style="width: 80%" :model="tmFrom">
-        <el-form-item label="品牌名称" label-width="100px">
+    <el-dialog
+      :title="`${this.tmFrom.id ? '修改' : '添加'}品牌`"
+      :visible.sync="dialogFormVisible"
+    >
+      <el-form style="width: 80%" :model="tmFrom" :rules="rules" ref="ruleForm">
+        <el-form-item label="品牌名称" prop="tmName" label-width="100px">
           <el-input autocomplete="off" v-model="tmFrom.tmName"></el-input>
         </el-form-item>
-        <el-form-item label="品牌LOGO" label-width="100px">
+        <el-form-item label="品牌LOGO" prop="logoUrl" label-width="100px">
           <el-upload
             class="avatar-uploader"
             action="/dev-api/admin/product/fileUpload"
@@ -89,6 +96,18 @@ export default {
         tmName: "",
         logoUrl: "",
       },
+      rules: {
+        tmName: [
+          { required: true, message: "请输入品牌名称", trigger: "blur" },
+          {
+            min: 2,
+            max: 10,
+            message: "长度在 2 到 5 个字符",
+            trigger: "change",
+          },
+        ],
+        logoUrl: [{ required: true, message: "请选择品牌图片" }],
+      },
     };
   },
   mounted() {
@@ -108,19 +127,28 @@ export default {
       this.pageInfo.limit = limit;
       this.getPageList();
     },
-    showDialog() {
+    addTradeMark() {
       this.tmFrom = {
         tmName: "",
         logoUrl: "",
       };
       this.dialogFormVisible = true;
     },
-    updateTradeMark() {
-      this.tmFrom = {
-        tmName: "",
-        logoUrl: "",
-      };
+    updateTradeMark(row) {
       this.dialogFormVisible = true;
+      this.tmFrom = { ...row };
+    },
+    deleteTradeMark(row) {
+      this.$confirm(`你确定删除${row.tmName}？`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        this.$message({
+          type: "success",
+          message: "删除成功!",
+        });
+      });
     },
     handleAvatarSuccess(res, file) {
       if (res.code == 200) {
@@ -139,13 +167,23 @@ export default {
       }
       return isJPG && isLt2M;
     },
-    async addOrUpdateTradeMark(){
-        this.dialogFormVisible = false
-        let res = await this.$API.trademark.reqAddOrUpdateTradeMark(this.tmFrom)
-        if(res.code == 200){
-
+    addOrUpdateTradeMark() {
+      this.$refs.ruleForm.validate(async (success) => {
+        if (success) {
+          let res = await this.$API.trademark.reqAddOrUpdateTradeMark(
+            this.tmFrom
+          );
+          if (+res.code === 200) {
+            this.$message.success(`${this.tmFrom.id ? "修改" : "添加"}成功`);
+            this.getPageList(this.pageInfo.page);
+            this.dialogFormVisible = false;
+          }
+        } else {
+          this.$message.warning(res.data);
+          return false;
         }
-    }
+      });
+    },
   },
 };
 </script>
