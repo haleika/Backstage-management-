@@ -42,12 +42,18 @@
                 icon="el-icon-info"
                 title="查看spu"
               ></hint-button>
-              <hint-button
-                size="mini"
-                type="danger"
-                icon="el-icon-delete"
-                title="删除"
-              ></hint-button>
+              <el-popconfirm
+                :title="`确定删除${row.spuName}吗？`"
+                @onConfirm="deleteSpu(row)"
+              >
+                <hint-button
+                  size="mini"
+                  type="danger"
+                  icon="el-icon-delete"
+                  title="删除"
+                  slot="reference"
+                ></hint-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -141,6 +147,13 @@ export default {
         this.getSpuList(this.page);
       } else {
         this.getSpuList(1);
+      }
+    },
+    async deleteSpu(row) {
+      let res = this.$API.spu.resDeleteSpu(row.id);
+      if(res.code == 200){
+        this.$message.success("删除成功")
+        this.getSpuList(this.records.length>1?this.page:this.page-1)
       }
     },
   },

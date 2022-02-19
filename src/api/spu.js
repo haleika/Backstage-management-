@@ -54,3 +54,9 @@ export const resAddOrUpdateSpu = (spuInfo) => {
         })
     }
 }
+
+
+export const resDeleteSpu = (spuId) => request({
+    url: `/admin/product/deleteSpu/${spuId}`,
+    method: "DELETE"
+})
