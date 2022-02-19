@@ -39,3 +39,10 @@ export const reqAddOrUodateAttr = (data) => request({
     method: "post",
     data
 })
+
+// /admin/product/deleteAttr/{attrId}
+
+export const reqDeleteAttr = (attrId) => request({
+    url: `/admin/product/deleteAttr/${attrId}`,
+    method: "delete"
+})
