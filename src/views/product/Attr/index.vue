@@ -18,7 +18,7 @@
           <el-table-column prop="attrName" label="属性名称" width="150">
           </el-table-column>
           <el-table-column prop="prop" label="属性值列表">
-            <template slot-scope="{ row, $index }">
+            <template slot-scope="{ row }">
               <el-tag
                 type="success"
                 v-for="attrValue in row.attrValueList"
@@ -29,7 +29,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="150">
-            <template slot-scope="{ row, $index }">
+            <template slot-scope="{ row }">
               <el-button
                 type="warning"
                 icon="el-icon-edit"
@@ -220,13 +220,13 @@ export default {
     deleteAttrValue(index) {
       this.attrInfo.attrValueList.splice(index, 1);
     },
-    async deleteAttr({id}){
-      try{
-        await this.$API.attr.reqDeleteAttr(id)
-        this.getAttrList()
-        this.$message.success("删除成功")
-      } catch{
-        this.$message.error("删除失败")
+    async deleteAttr({ id }) {
+      try {
+        await this.$API.attr.reqDeleteAttr(id);
+        this.getAttrList();
+        this.$message.success("删除成功");
+      } catch {
+        this.$message.error("删除失败");
       }
     },
     async addOrUpdateAttr() {
