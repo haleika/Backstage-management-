@@ -6,7 +6,12 @@
     <el-card>
       <div v-show="scence == 0">
         <!-- 展示spu列表结构 -->
-        <el-button :disabled="!category3Id" style="margin: 10px 0" type="primary" icon="el-icon-plus"
+        <el-button
+          :disabled="!category3Id"
+          style="margin: 10px 0"
+          type="primary"
+          icon="el-icon-plus"
+          @click="addSpu"
           >添加spu</el-button
         >
         <el-table style="width: 100%" border :data="records">
@@ -17,13 +22,12 @@
           <el-table-column prop="description" label="spu描述" width="width">
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
-            <template slot-scope="{ row, $index }">
+            <template slot-scope="{ row }">
               <hint-button
                 size="mini"
                 type="success"
                 icon="el-icon-plus"
                 title="新增spu"
-                @click="addSpu"
               ></hint-button>
               <hint-button
                 size="mini"
@@ -63,7 +67,11 @@
         >
         </el-pagination>
       </div>
-      <SpuForm ref="spu" v-show="scence == 1" @changeScene="changeScene"></SpuForm>
+      <SpuForm
+        ref="spu"
+        v-show="scence == 1"
+        @changeScene="changeScene"
+      ></SpuForm>
       <SkuForm v-show="scence == 2"></SkuForm>
     </el-card>
   </div>
@@ -118,17 +126,23 @@ export default {
       this.limit = limit;
       this.getSpuList(this.page);
     },
-    addSpu(){
-      this.scence = 1
+    addSpu() {
+      this.scence = 1;
+      this.$refs.spu.addSpuData(this.category3Id);
     },
-    editSpu(row){
-      this.scence = 1
+    editSpu(row) {
+      this.scence = 1;
       // 获取spu
-      this.$refs.spu.initSpuData(row)
+      this.$refs.spu.initSpuData(row);
     },
-    changeScene(scence){
-      this.scence = scence
-    }
+    changeScene({ scence, flag }) {
+      this.scence = scence;
+      if (flag == "修改") {
+        this.getSpuList(this.page);
+      } else {
+        this.getSpuList(1);
+      }
+    },
   },
 };
 </script>

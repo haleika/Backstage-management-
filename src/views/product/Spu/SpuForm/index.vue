@@ -41,17 +41,23 @@
       <el-form-item label="销售属性">
         <el-select
           value=""
-          v-model="attrId"
+          v-model="attrIdAndAttrName"
           :placeholder="`还有${unSelectSaleAttr.length}未选择`"
         >
           <el-option
             :label="unSelect.name"
-            :value="unSelect.id"
+            :value="`${unSelect.id}:${unSelect.name}`"
             v-for="unSelect in unSelectSaleAttr"
             :key="unSelect.id"
           ></el-option>
         </el-select>
-        <el-button type="primary" icon="el-icon-plus" :disabled="!attrId">添加销售属性</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          :disabled="!attrIdAndAttrName"
+          @click="addSaleAttr"
+          >添加销售属性</el-button
+        >
         <el-table style="width: 100%" border :data="spu.spuSaleAttrList">
           <el-table-column
             type="index"
@@ -66,11 +72,12 @@
             <template slot-scope="{ row }">
               <el-tag
                 :key="tag.id"
-                v-for="tag in row.spuSaleAttrValueList"
+                v-for="(tag, index) in row.spuSaleAttrValueList"
                 closable
                 :disable-transitions="false"
+                @close="row.spuSaleAttrValueList.splice(index, 1)"
               >
-                {{ tag.saleAttrName }}
+                {{ tag.saleAttrValueName }}
               </el-tag>
               <el-input
                 class="input-new-tag"
@@ -78,27 +85,34 @@
                 v-model="row.inputValue"
                 ref="saveTagInput"
                 size="small"
+                @blur="handleInputComfirm(row)"
+                @keyup.native.enter="handleInputComfirm(row)"
               >
               </el-input>
-              <el-button v-else class="button-new-tag" size="small"
+              <el-button
+                v-else
+                class="button-new-tag"
+                size="small"
+                @click="addSaleAttrValue(row)"
                 >+ 添加</el-button
               >
             </template>
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width">
-            <template slot-scope="{ row }">
+            <template slot-scope="{ $index }">
               <el-button
-                type="primary"
+                type="danger"
                 icon="el-icon-delete"
                 size="mini"
+                @click="spu.spuSaleAttrList.splice($index, 1)"
               ></el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary">保存</el-button>
-        <el-button @click="$emit('changeScene', 0)">取消</el-button>
+        <el-button type="primary" @click="addOrUpdateSpu">保存</el-button>
+        <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -108,41 +122,16 @@ export default {
   name: "SpuForm",
   data() {
     return {
-      attrId: "",
+      attrIdAndAttrName: "",
       dialogImageUrl: "",
       dialogVisible: false,
       spu: {
         category3Id: 0,
         description: "",
-        id: 0,
-        spuImageList: [
-          {
-            id: 0,
-            imgName: "",
-            imgUrl: "",
-            spuId: 0,
-          },
-        ],
+        spuImageList: [],
         spuName: "",
-        spuSaleAttrList: [
-          {
-            baseSaleAttrId: 0,
-            id: 0,
-            saleAttrName: "",
-            spuId: 0,
-            spuSaleAttrValueList: [
-              {
-                baseSaleAttrId: 0,
-                id: 0,
-                isChecked: "",
-                saleAttrName: "",
-                saleAttrValueName: "",
-                spuId: 0,
-              },
-            ],
-          },
-        ],
-        tmId: 0,
+        spuSaleAttrList: [],
+        tmId: "",
       },
       tradeMarkList: [],
       spuImageList: [],
@@ -160,8 +149,8 @@ export default {
   },
   methods: {
     handleRemove(file, fileList) {
-        // 收集照片墙
-        this.spuImageList = fileList
+      // 收集照片墙
+      this.spuImageList = fileList;
     },
     handlePictureCardPreview(file) {
       this.dialogImageUrl = file.url;
@@ -191,8 +180,70 @@ export default {
         this.baseSaleAttrList = res_BaseSaleAttrList.data;
     },
     // 照片墙图片上传成功回调
-    handlerSuccess(respones,file,fileList){
-        this.spuImageList = fileList
+    handlerSuccess(respones, file, fileList) {
+      this.spuImageList = fileList;
+    },
+    addSaleAttr() {
+      const [baseSaleAttrId, saleAttrName] = this.attrIdAndAttrName.split(":");
+      this.spu.spuSaleAttrList.push({
+        baseSaleAttrId,
+        saleAttrName,
+        spuSaleAttrValueList: [],
+      });
+      this.attrIdAndAttrName = "";
+    },
+    addSaleAttrValue(row) {
+      this.$set(row, "inputVisible", true);
+      this.$set(row, "inputValue", "");
+    },
+    handleInputComfirm(row) {
+      const { baseSaleAttrId, inputValue } = row;
+      if (inputValue.trim() == "") {
+        this.$message.warning("不能为空");
+        row.inputVisible = false;
+        return;
+      }
+
+      let res = row.spuSaleAttrValueList.every(
+        (item) => item.saleAttrValueName != inputValue
+      );
+      if (!res) return;
+
+      row.spuSaleAttrValueList.push({
+        baseSaleAttrId,
+        saleAttrValueName: inputValue,
+      });
+      row.inputVisible = false;
+    },
+    async addOrUpdateSpu() {
+      // await this.$API.spu.resAddOrUpdateSpu()
+      this.spu.spuImageList = this.spuImageList.map((item) => {
+        return {
+          imgName: item.name,
+          imgUrl: (item.response && item.response.data) || item.url,
+        };
+      });
+      let res = await this.$API.spu.resAddOrUpdateSpu(this.spu);
+      if (res.code == 200) {
+        this.$message.success("保存成功");
+        this.$emit("changeScene", {scence:0,flag:this.spu.id?"修改":"增加"});
+        Object.assign(this._data,this.$options.data())
+      }
+    },
+    async addSpuData(category3Id) {
+      this.spu.category3Id = category3Id;
+      let res_tradeMarkList = await this.$API.spu.resTrademarkList();
+      if (res_tradeMarkList.code == 200)
+        this.tradeMarkList = res_tradeMarkList.data;
+
+      let res_BaseSaleAttrList = await this.$API.spu.resGetBaseSaleAttrList();
+      if (res_BaseSaleAttrList.code == 200)
+        this.baseSaleAttrList = res_BaseSaleAttrList.data;
+    },
+    cancel(){
+        this.$emit('changeScene', { scence:0, flag:"" })
+        //this.$options可以获取配置对象，配置对象的打他函数执行，返回响应式数据为空的
+        Object.assign(this._data,this.$options.data())
     }
   },
 };
