@@ -30,3 +30,12 @@ export const reqAddAttr = (data) => request({
     method: "post",
     data
 })
+
+
+// /admin/product/saveAttrInfo
+
+export const reqAddOrUodateAttr = (data) => request({
+    url: `/admin/product/saveAttrInfo`,
+    method: "post",
+    data
+})

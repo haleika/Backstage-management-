@@ -8,6 +8,7 @@
         placeholder="请选择"
         @change="handler1"
         v-model="cForm.category1Id"
+        :disabled="show"
       >
         <el-option
           v-for="c1 in list1"
@@ -22,6 +23,7 @@
         placeholder="请选择"
         @change="handler2"
         v-model="cForm.category2Id"
+        :disabled="show"
       >
         <el-option
           v-for="c2 in list2"
@@ -36,6 +38,7 @@
         placeholder="请选择"
         @change="handler3"
         v-model="cForm.category3Id"
+        :disabled="show"
       >
         <el-option
           v-for="c3 in list3"
@@ -51,6 +54,7 @@
 <script>
 export default {
   name: "CategorySelect",
+  props:['show'],
   data() {
     return {
       list1: [],

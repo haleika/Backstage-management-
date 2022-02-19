@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card style="margin: 20px 0px">
-      <CategorySelect @getCategoryId="getCategoryId" />
+      <CategorySelect @getCategoryId="getCategoryId" :show="!isShowTable" />
     </el-card>
     <el-card>
       <div v-show="isShowTable">
@@ -74,23 +74,43 @@
             <el-table-column prop="prop" label="属性值名称">
               <template slot-scope="{ row, $index }">
                 <el-input
+                  @keyup.native.enter="toLook($event, row)"
+                  @blur="toLook($event, row)"
+                  v-show="row.flag"
                   v-model="row.valueName"
                   size="mini"
                   placeholder="请输入属性值名称"
+                  :ref="$index"
                 ></el-input>
+                <span
+                  v-show="!row.flag"
+                  @click="toEdit(row, $index)"
+                  style="display: block"
+                  >{{ row.valueName }}</span
+                >
               </template>
             </el-table-column>
             <el-table-column prop="prop" label="操作">
               <template slot-scope="{ row, $index }">
-                <el-button
-                  type="danger"
-                  size="mini"
-                  icon="el-icon-delete"
-                ></el-button>
+                <el-popconfirm
+                  :title="`确定删除${row.valueName}吗？`"
+                  @onConfirm="deleteAttrValue($index)"
+                  ><el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    slot="reference"
+                  ></el-button>
+                </el-popconfirm>
               </template>
             </el-table-column>
           </el-table>
-          <el-button type="primary">保存</el-button>
+          <el-button
+            type="primary"
+            @click="addOrUpdateAttr"
+            :disabled="attrInfo.attrValueList.length<1"
+            >保存</el-button
+          >
           <el-button @click="isShowTable = true">取消</el-button>
         </el-form>
       </div>
@@ -98,6 +118,7 @@
   </div>
 </template>
 <script>
+import cloneDeep from "loadsh/cloneDeep";
 export default {
   name: "Attr",
   data() {
@@ -143,8 +164,12 @@ export default {
     },
     addAttrValue() {
       this.attrInfo.attrValueList.push({
-        attrid: undefined,
+        attrId: this.attrInfo.id,
         valueName: "",
+        flag: true,
+      });
+      this.$nextTick(() => {
+        this.$refs[this.attrInfo.attrValueList.length - 1].focus();
       });
     },
     addAttr() {
@@ -159,9 +184,52 @@ export default {
     },
     updateAttr(row) {
       // 修改商品属性
-      console.log('-------row---------',row);
       this.isShowTable = false;
-      this.attrInfo = row;
+      this.attrInfo = cloneDeep(row);
+      this.attrInfo.attrValueList.forEach((item) => {
+        // 这样也是可以添加属性，但它不是响应式数据
+        // item.flag = false
+        this.$set(item, "flag", false);
+      });
+    },
+    toLook($event, row) {
+      if (row.valueName.trim() == "") {
+        this.$message.warning("请输入正确的属性值！");
+        return;
+      }
+      let isRepat = this.attrInfo.attrValueList.some((item) => {
+        if (row !== item) {
+          return row.valueName == item.valueName;
+        }
+      });
+      if (isRepat) return;
+      row.flag = false;
+    },
+    toEdit(row, index) {
+      row.flag = true;
+      this.$nextTick(() => {
+        this.$refs[index].focus();
+      });
+    },
+    deleteAttrValue(index) {
+      this.attrInfo.attrValueList.splice(index, 1);
+    },
+    async addOrUpdateAttr() {
+      this.attrInfo.attrValueList.filter((item) => {
+        if (item.valueName != "") {
+          // 删除掉flag
+          delete item.flag;
+          return true;
+        }
+      });
+      try {
+        await this.$API.attr.reqAddOrUodateAttr(this.attrInfo);
+        this.getAttrList();
+        this.$message.success("保存成功");
+        this.isShowTable = true;
+      } catch {
+        this.$message.error("失败");
+      }
     },
   },
 };
