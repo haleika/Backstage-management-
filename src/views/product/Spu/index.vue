@@ -28,6 +28,7 @@
                 type="success"
                 icon="el-icon-plus"
                 title="新增spu"
+                @click="addSku(row)"
               ></hint-button>
               <hint-button
                 size="mini"
@@ -41,6 +42,7 @@
                 type="info"
                 icon="el-icon-info"
                 title="查看spu"
+                @click="showDialo(row)"
               ></hint-button>
               <el-popconfirm
                 :title="`确定删除${row.spuName}吗？`"
@@ -78,8 +80,46 @@
         v-show="scence == 1"
         @changeScene="changeScene"
       ></SpuForm>
-      <SkuForm v-show="scence == 2"></SkuForm>
+      <SkuForm
+        v-show="scence == 2"
+        ref="sku"
+        @changeScenes="changeScenes"
+      ></SkuForm>
     </el-card>
+
+    <el-dialog
+      :title="`${spu.spuName}的列表}`"
+      :visible.sync="dialogTableVisible"
+      width="80%"
+      @before-close="close"
+    >
+      <el-table :data="skuList" style="width: 100%" v-loading="loading">
+        <el-table-column
+          prop="skuName"
+          label="名称"
+          width="150"
+        ></el-table-column>
+        <el-table-column
+          prop="price"
+          label="价格"
+          width="200"
+        ></el-table-column>
+        <el-table-column
+          prop="weight"
+          label="重量"
+          width="200"
+        ></el-table-column>
+        <el-table-column label="默认图片" width="200">
+          <template slot-scope="{ row }">
+            <img
+              :src="row.skuDefaultImg"
+              alt=""
+              style="width: 100px; height: 100%"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -98,6 +138,10 @@ export default {
       page: 1,
       limit: 3,
       scence: 0,
+      dialogTableVisible: false,
+      spu: {},
+      skuList: [],
+      loading: true,
     };
   },
   components: {
@@ -151,10 +195,31 @@ export default {
     },
     async deleteSpu(row) {
       let res = this.$API.spu.resDeleteSpu(row.id);
-      if(res.code == 200){
-        this.$message.success("删除成功")
-        this.getSpuList(this.records.length>1?this.page:this.page-1)
+      if (res.code == 200) {
+        this.$message.success("删除成功");
+        this.getSpuList(this.records.length > 1 ? this.page : this.page - 1);
       }
+    },
+    addSku(row) {
+      this.scence = 2;
+      let { category1Id, category2Id } = this;
+      this.$refs.sku.getData(category1Id, category2Id, row);
+    },
+    changeScenes(scence) {
+      this.scence = scence;
+    },
+    async showDialo(row) {
+      this.dialogTableVisible = true;
+      this.spu = row;
+      let res = await this.$API.sku.reqSpuList(row.id);
+      if (res.code == 200) {
+        this.skuList = res.data;
+        this.loading = false;
+      }
+    },
+    close() {
+      this.loading = true;
+      this.spu = {};
     },
   },
 };
