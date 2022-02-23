@@ -35,3 +35,10 @@ export const reqSpuList=(spuId)=>request({
     method: "get"
 })
 
+//sku列表接口
+
+// /admin/product/list/{page}/{limit}
+export const reqSkuList=(page,limit) =>request({
+    url:`/admin/product/list/${page}/${limit}`,
+    method:'get'
+})
