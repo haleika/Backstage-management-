@@ -42,3 +42,12 @@ export const reqSkuList=(page,limit) =>request({
     url:`/admin/product/list/${page}/${limit}`,
     method:'get'
 })
+
+//上架
+// /admin/product/onSle/{skuId}
+
+
+
+
+//下架
+// /admin/product/list/{page}/{limit}

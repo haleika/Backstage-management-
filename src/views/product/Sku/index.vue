@@ -24,11 +24,13 @@
             type="success"
             size="mini"
             icon="el-icon-sort-down"
+            v-show="row.isSale == 0"
           ></el-button>
           <el-button
             type="success"
             size="mini"
             icon="el-icon-sort-up"
+            v-show="row.isSale != 0"
           ></el-button>
           <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
           <el-button type="info" size="mini" icon="el-icon-info"></el-button>
