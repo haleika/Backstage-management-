@@ -19,6 +19,9 @@
       <el-col :span="6">
         <Detail title="访问量" count="88460">
           <template slot="charts"> </template>
+          <template slot="charts">
+            <LineCharts></LineCharts>
+          </template>
           <template slot="footer">
             <span>日访问量123658</span>
           </template>
@@ -27,6 +30,7 @@
       <el-col :span="6">
         <Detail title="支付笔数" count="88460">
           <template slot="charts"> </template>
+          <template slot="charts"> <BarCharts></BarCharts> </template>
           <template slot="footer">
             <span>转化率123658</span>
           </template>
@@ -34,15 +38,17 @@
       </el-col>
       <el-col :span="6">
         <Detail title="运营活动效果" count="88460">
-          <template slot="charts"> </template>
+          <template slot="charts"> <ProgressCharts></ProgressCharts></template>
           <template slot="footer">
             <span
               >周同比&nbsp;&nbsp;12% <span class="el-icon-sort-up"></span>
             </span>
             <span
               >日同比&nbsp;&nbsp;12% <span class="el-icon-sort-down"></span>
-            </span>
-          </template>
+            </span> </template></Detail></el-col
+    ></el-row>
+  </div>
+</template>
         </Detail>
       </el-col>
     </el-row>
@@ -51,9 +57,13 @@
     
 <script>
 import Detail from "./Detail";
+import LineCharts from "./LineCharts";
+import BarCharts from "./BarCharts";
+import ProgressCharts from "./ProgressCharts";
+
 export default {
   name: "Card",
-  components: { Detail },
+  components: { Detail, LineCharts, BarCharts, ProgressCharts },
 };
 </script>
     
